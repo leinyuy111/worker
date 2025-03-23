@@ -1,13 +1,17 @@
-def registry= "940090592876.dkr.ecr.ca-cental-1.amazonaws.com"
+def registry= "940090592876.dkr.ecr.ca-central-1.amazonaws.com"
 def tag = ""
 def ms = "worker"
-def region = "ca-cental-1"
+def region = "ca-central-1"
 
 pipeline{
     agent any
+    environment {
+        ECR_REPO = '940090592876.dkr.ecr.ca-cental-1.amazonaws.com/worker'
+    }
     stages{
         stage("init"){
             steps{
+                git 'https://github.com/leinyuy111/worker.git'
                 script{
                     tag = getTag()
                     ms = getMsName()
@@ -17,7 +21,7 @@ pipeline{
         stage("Build Docker image"){
             steps{
                 script{
-                    sh "docker build . -t ${registry}/${ms}:${tag}  "
+                    sh "docker build -t worker ."
                 }
             }
         }
@@ -26,7 +30,9 @@ pipeline{
             steps{
                 script{
                     withAWS(region:"$region",credentials:'aws_creds'){
-                        sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${registry}"
+                        sh "aws ecr get-login-password --region ca-central-1 | docker login --username AWS --password-stdin $ECR_REPO
+                        docker tag vote $ECR_REPO
+                        docker push $ECR_REPO"
                     }
                 }
             }
