@@ -31,7 +31,7 @@ pipeline{
             steps{
                 script{
                     tag = getTag()
-                      ms = getMsName()
+                    //  ms = getMsName()
                 }
             }
         }
