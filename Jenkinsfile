@@ -10,7 +10,7 @@ pipeline{
             steps{
                 script{
                     tag = getTag()
-                  //  ms = getMsName()
+                      ms = getMsName()
                 }
             }
         }
@@ -69,5 +69,4 @@ def getTag(){
     tag = "${version}-${env.BRANCH_NAME}"
   }
 return tag 
-} 
 }
