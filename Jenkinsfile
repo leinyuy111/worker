@@ -49,7 +49,6 @@ pipeline{
                 }
             }
         }
-    }
 
 def getMsName(){
     print env.JOB_NAME
