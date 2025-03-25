@@ -8,22 +8,6 @@ def getMsName(){
     return env.JOB_NAME.split("/")[0]
 }
 
-def getTag(){
- sh "ls -l"
- version = "1.3.0"
- print "version: ${version}"
-
- def tag = ""
-  if (env.BRANCH_NAME == "main"){
-    tag = version
-  } else if(env.BRANCH_NAME == "develop"){
-    tag = "${version}-develop"
-  } else {
-    tag = "${version}-${env.BRANCH_NAME}"
-  }
-return tag 
-}
-
 pipeline{
     agent any
     stages{
@@ -63,6 +47,7 @@ pipeline{
             when{branch 'develop'}
             steps{
                 script{
+                     withAWS(region: region, credentials:'aws_creds'){
                         sh "aws eks update-kubeconfig --name worker-dev"
                         sh "kubectl set image deploy/result result=${registry}/${ms}:${tag} -n worker"
                         sh "kubectl rollout restart deploy/result -n worker"
@@ -70,3 +55,19 @@ pipeline{
                 }
             }
         }
+
+    def getTag(){
+ sh "ls -l"
+ version = "1.3.0"
+ print "version: ${version}"
+
+ def tag = ""
+  if (env.BRANCH_NAME == "main"){
+    tag = version
+  } else if(env.BRANCH_NAME == "develop"){
+    tag = "${version}-develop"
+  } else {
+    tag = "${version}-${env.BRANCH_NAME}"
+  }
+return tag 
+}
