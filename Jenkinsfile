@@ -1,4 +1,4 @@
-def registry= "940090592876.dkr.ecr.ca-central-1.amazonaws.com"
+def registry= "975050242866.dkr.ecr.ca-central-1.amazonaws.com"
 def tag = ""
 def ms = "worker"
 def region = "ca-central-1"
@@ -6,7 +6,7 @@ def region = "ca-central-1"
 pipeline{
     agent any
     environment {
-        ECR_REPO = '940090592876.dkr.ecr.ca-cental-1.amazonaws.com/worker'
+        ECR_REPO = '975050242866.dkr.ecr.ca-central-1.amazonaws.com/worker'
     }
     stages{
         stage("init"){
@@ -14,7 +14,7 @@ pipeline{
                 git 'https://github.com/leinyuy111/worker.git'
                 script{
                     tag = getTag()
-                    ms = getMsName()
+                //    ms = getMsName()
                 }
             }
         }
@@ -31,8 +31,8 @@ pipeline{
                 script{
                     withAWS(region:"$region",credentials:'aws_creds'){
                         sh "aws ecr get-login-password --region ca-central-1 | docker login --username AWS --password-stdin $ECR_REPO
-                        docker tag vote $ECR_REPO
-                        docker push $ECR_REPO"
+                        sh "docker tag worker:latest $ECR_REPO:$tag"
+                        sh "docker push $ECR_REPO:$tag"
                     }
                 }
             }
@@ -53,9 +53,9 @@ pipeline{
             steps{
                 script{
                     withAWS(region:"$region",credentials:'aws_creds'){
-                        sh "aws eks update-kubeconfig --name vote-dev"
-                        sh "kubectl set image deploy/result result=${tag} -n vote "
-                        sh "kubectl rollout restart deploy/result -n vote"
+                        sh "aws eks update-kubeconfig --name worker-dev"
+                        sh "kubectl set image deploy/result result=${tag} -n worker"
+                        sh "kubectl rollout restart deploy/result -n worker"
                     }
                 }
             }
