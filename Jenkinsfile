@@ -3,6 +3,27 @@ def tag = ""
 def ms = "worker"
 def region = "ca-central-1"
 
+def getMsName(){
+    print env.JOB_NAME
+    return env.JOB_NAME.split("/")[0]
+}
+
+def getTag(){
+ sh "ls -l"
+ version = "1.3.0"
+ print "version: ${version}"
+
+ def tag = ""
+  if (env.BRANCH_NAME == "main"){
+    tag = version
+  } else if(env.BRANCH_NAME == "develop"){
+    tag = "${version}-develop"
+  } else {
+    tag = "${version}-${env.BRANCH_NAME}"
+  }
+return tag 
+}
+
 pipeline{
     agent any
     stages{
@@ -49,25 +70,3 @@ pipeline{
                 }
             }
         }
-
-def getMsName(){
-    print env.JOB_NAME
-    return env.JOB_NAME.split("/")[0]
-}
-
-def getTag(){
- sh "ls -l"
- version = "1.3.0"
- print "version: ${version}"
-
- def tag = ""
-  if (env.BRANCH_NAME == "main"){
-    tag = version
-  } else if(env.BRANCH_NAME == "develop"){
-    tag = "${version}-develop"
-  } else {
-    tag = "${version}-${env.BRANCH_NAME}"
-  }
-return tag 
-}
-}
