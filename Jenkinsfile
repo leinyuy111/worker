@@ -5,23 +5,19 @@ def region = "ca-central-1"
 
 pipeline{
     agent any
-    environment {
-        ECR_REPO = '975050242866.dkr.ecr.ca-central-1.amazonaws.com/worker'
-    }
     stages{
         stage("init"){
             steps{
-                git 'https://github.com/leinyuy111/worker.git'
                 script{
                     tag = getTag()
-                //    ms = getMsName()
+                  //  ms = getMsName()
                 }
             }
         }
         stage("Build Docker image"){
             steps{
                 script{
-                    sh "docker build -t worker ."
+                    sh "docker build . -t ${registry}/${ms}:${tag}"
                 }
             }
         }
@@ -29,32 +25,25 @@ pipeline{
         stage("Login to Ecr"){
             steps{
                 script{
-                    withAWS(region:"$region",credentials:'aws_creds'){
-                        sh "aws ecr get-login-password --region ca-central-1 | docker login --username AWS --password-stdin $ECR_REPO
-                        sh "docker tag worker:latest $ECR_REPO:$tag"
-                        sh "docker push $ECR_REPO:$tag"
+                        sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${registry}"
                     }
                 }
             }
-        }
 
         stage("Docker push"){
             steps{
                 script{
-                    withAWS(region:"$region",credentials:'aws_creds'){
                         sh "docker push ${registry}/${ms}:${tag}"
                     }
                 }
             }
-        }
 
         stage("Deploy to Dev"){
             when{branch 'develop'}
             steps{
                 script{
-                    withAWS(region:"$region",credentials:'aws_creds'){
                         sh "aws eks update-kubeconfig --name worker-dev"
-                        sh "kubectl set image deploy/result result=${tag} -n worker"
+                        sh "kubectl set image deploy/result result=${registry}/${ms}:${tag} -n worker"
                         sh "kubectl rollout restart deploy/result -n worker"
                     }
                 }
